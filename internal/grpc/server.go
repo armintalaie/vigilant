@@ -39,6 +39,12 @@ func (s *GServer) SendLog(ctx context.Context, req *pb.Log) (*pb.LogResponse, er
 		Level:     pb.LogLevel(req.Level),
 		Severity:  uint32(int(req.Severity)),
 		Timestamp: req.Timestamp,
+		Source:    req.Source,
+		Data:      req.Data,
+		Group:     req.Group,
+		Tags:      req.Tags,
+		Type:      req.Type,
+		Origin:    req.Origin,
 	}
 
 	fmt.Printf("Received log: %v\n", log.Message)

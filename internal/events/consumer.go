@@ -3,9 +3,11 @@ package internal
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
+	pb "vigilant/internal/logger"
 
 	"github.com/IBM/sarama"
 	_ "github.com/mattn/go-sqlite3"
@@ -35,11 +37,23 @@ func NewConsumer(brokers []string, topic string, dbPath string) (*Consumer, erro
 }
 
 func createTable(db *sql.DB) error {
+	_, _ = db.Exec(`
+		DROP TABLE IF EXISTS logs
+`)
 	_, err := db.Exec(`
         CREATE TABLE IF NOT EXISTS logs (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             message TEXT,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            level TEXT,
+            severity INTEGER,
+            source TEXT,
+            "group" TEXT,
+            tags TEXT,
+            type TEXT,
+            origin TEXT,
+            data TEXT
         )
     `)
 	return err
@@ -61,7 +75,7 @@ func (c *Consumer) Start() error {
 	}
 	defer partitionConsumer.Close()
 
-	ticker := time.NewTicker(1 * time.Minute)
+	ticker := time.NewTicker(30 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -94,7 +108,30 @@ func (c *Consumer) readMessages(ctx context.Context, partitionConsumer sarama.Pa
 }
 
 func (c *Consumer) saveToDatabase(message string) error {
-	_, err := c.db.Exec("INSERT INTO logs (message) VALUES (?)", message)
+	var logMessage pb.Log
+	if err := json.Unmarshal([]byte(message), &logMessage); err != nil {
+		return fmt.Errorf("failed to unmarshal message: %v", err)
+	}
+
+	// Serialize the Data map to a JSON string
+	dataJSON, err := json.Marshal(logMessage.Data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data to JSON: %v", err)
+	}
+
+	_, err = c.db.Exec(`INSERT INTO logs (id, message, timestamp, level, severity, source, "group", tags, type, origin, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		logMessage.Id,
+		logMessage.Message,
+		time.Unix(logMessage.Timestamp, 0),
+		logMessage.Level.String(),
+		logMessage.Severity,
+		logMessage.Source,
+		logMessage.Group,
+		logMessage.Tags,
+		logMessage.Type,
+		logMessage.Origin,
+		string(dataJSON),
+	)
 	return err
 }
 

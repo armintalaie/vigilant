@@ -16,7 +16,18 @@ message Log {
   string message = 2;
   LogLevel level = 3;
   uint32 severity = 4;
-  uint64 timestamp = 5;
+  int64 timestamp = 5;
+  string origin = 6;
+  string source = 7;
+  string type = 8;
+  string group = 9;
+  string tags = 10;
+
+  message Data {
+    map<string, string> fields = 1;
+  }
+
+  Data data = 11;
 }
 
 message LogConfig {
@@ -28,8 +39,28 @@ message LogConfig {
   bool print_and_forget = 6;
 }
 
+message GetLogsRequest {
+  uint32 limit = 1;
+  uint32 offset = 2;
+  string source = 3;
+  string type = 4;
+  string group = 5;
+  string tags = 6;
+  string origin = 7;
+  string message = 8;
+  LogLevel level = 9;
+  uint32 severity = 10;
+  int64 timestamp = 11;
+}
+
+message GetLogRequest {
+  uint32 id = 1;
+}
+
 service LogService {
   rpc SendLog(Log) returns (LogResponse) {}
+  rpc GetLogs(GetLogsRequest) returns (stream Log) {}
+  rpc GetLog(GetLogRequest) returns (Log) {}
 }
 
 message LogResponse {
