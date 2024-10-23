@@ -27,13 +27,27 @@ A self-hosted, lightweight, and simple event monitoring tool written in Go and g
     - You can run the Go server by running `go run main.go`.
     - The server will start on port `50051`.
 
+
 🎉 You're all set! 🎉
+
+
+### (Optional) Setting up a client
+
+1. Install the Wails CLI.
+    - You can install the wails CLI by running `go install github.com/wailsapp/wails/v2/cmd/wails@latest`.
+    - You can check if you have the wails CLI installed by running `wails --version`.
+    - If you encounter any issues, you can check the [Wails documentation](https://wails.io/docs/gettingstarted/installation).
+2. Run the Wails app.
+    - You can run the Wails app by running `wails dev` in the `cmd/desktop` directory.
+
 
 
 
 ## Running
 
 Repeat step 6 and 7 from the setup section to run the server.
+
+To run the client, repeat step 2 from the setup section.
 
 ### Deploying to production
 
