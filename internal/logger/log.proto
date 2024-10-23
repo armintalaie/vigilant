@@ -4,11 +4,12 @@ option go_package = "internal/logger";
 
 
 enum LogLevel {
-  NONE = 0;
-  INFO = 1;
-  WARN = 2;
-  ERROR = 3;
-  DEBUG = 4;
+  ALL = 0;
+  NONE = 1;
+  INFO = 2;
+  WARN = 3;
+  ERROR = 4;
+  DEBUG = 5;
 }
 
 message Log {

@@ -20,6 +20,8 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	LogService_SendLog_FullMethodName = "/logger.LogService/SendLog"
+	LogService_GetLogs_FullMethodName = "/logger.LogService/GetLogs"
+	LogService_GetLog_FullMethodName  = "/logger.LogService/GetLog"
 )
 
 // LogServiceClient is the client API for LogService service.
@@ -27,6 +29,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type LogServiceClient interface {
 	SendLog(ctx context.Context, in *Log, opts ...grpc.CallOption) (*LogResponse, error)
+	GetLogs(ctx context.Context, in *GetLogsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Log], error)
+	GetLog(ctx context.Context, in *GetLogRequest, opts ...grpc.CallOption) (*Log, error)
 }
 
 type logServiceClient struct {
@@ -47,11 +51,42 @@ func (c *logServiceClient) SendLog(ctx context.Context, in *Log, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *logServiceClient) GetLogs(ctx context.Context, in *GetLogsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[Log], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &LogService_ServiceDesc.Streams[0], LogService_GetLogs_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[GetLogsRequest, Log]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type LogService_GetLogsClient = grpc.ServerStreamingClient[Log]
+
+func (c *logServiceClient) GetLog(ctx context.Context, in *GetLogRequest, opts ...grpc.CallOption) (*Log, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Log)
+	err := c.cc.Invoke(ctx, LogService_GetLog_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LogServiceServer is the server API for LogService service.
 // All implementations must embed UnimplementedLogServiceServer
 // for forward compatibility.
 type LogServiceServer interface {
 	SendLog(context.Context, *Log) (*LogResponse, error)
+	GetLogs(*GetLogsRequest, grpc.ServerStreamingServer[Log]) error
+	GetLog(context.Context, *GetLogRequest) (*Log, error)
 	mustEmbedUnimplementedLogServiceServer()
 }
 
@@ -64,6 +99,12 @@ type UnimplementedLogServiceServer struct{}
 
 func (UnimplementedLogServiceServer) SendLog(context.Context, *Log) (*LogResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendLog not implemented")
+}
+func (UnimplementedLogServiceServer) GetLogs(*GetLogsRequest, grpc.ServerStreamingServer[Log]) error {
+	return status.Errorf(codes.Unimplemented, "method GetLogs not implemented")
+}
+func (UnimplementedLogServiceServer) GetLog(context.Context, *GetLogRequest) (*Log, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetLog not implemented")
 }
 func (UnimplementedLogServiceServer) mustEmbedUnimplementedLogServiceServer() {}
 func (UnimplementedLogServiceServer) testEmbeddedByValue()                    {}
@@ -104,6 +145,35 @@ func _LogService_SendLog_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LogService_GetLogs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(GetLogsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(LogServiceServer).GetLogs(m, &grpc.GenericServerStream[GetLogsRequest, Log]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type LogService_GetLogsServer = grpc.ServerStreamingServer[Log]
+
+func _LogService_GetLog_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetLogRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LogServiceServer).GetLog(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LogService_GetLog_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LogServiceServer).GetLog(ctx, req.(*GetLogRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LogService_ServiceDesc is the grpc.ServiceDesc for LogService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -115,7 +185,17 @@ var LogService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "SendLog",
 			Handler:    _LogService_SendLog_Handler,
 		},
+		{
+			MethodName: "GetLog",
+			Handler:    _LogService_GetLog_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetLogs",
+			Handler:       _LogService_GetLogs_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "internal/logger/log.proto",
 }
