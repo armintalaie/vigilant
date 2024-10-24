@@ -1,0 +1,39 @@
+---
+title: Self-host your proudction logs your way
+description: A self-hosted, lightweight, and simple event monitoring tool written in Go and gRPC with Kafka as the message broker.
+template: splash
+hero:
+  tagline: "Self-host your proudction logs your way"
+  image:
+    file: ../../assets/cli.svg
+  actions:
+    - text: Get Started
+      link: https://github.com/armintalaie/vigilant
+      icon: right-arrow
+      variant: primary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+---
+
+<CardGrid>
+	<Card title="Lightweight Monitoring" icon="seti:smarty">
+		Self-hosted event monitoring tool built with Go and gRPC, using Kafka as a robust message broker for reliable event handling.
+	</Card>
+	<Card title="Flexible Logging" icon="list-format">
+		Comprehensive logging system supporting multiple levels, severity tracking, custom tags, and rich metadata for detailed event tracking.
+	</Card>
+	<Card title="Modern Architecture" icon="rocket">
+		Built with modern tech stack including gRPC, Kafka, and optional GUI through Wails and SvelteKit for both desktop and web interfaces.
+	</Card>
+	<Card title="Advanced Querying" icon="magnifier">
+		Complex event querying capabilities to filter and analyze your logs by timestamp, severity, tags, groups and custom metadata.
+	</Card>
+	<Card title="Security-First" icon="seti:lock">
+		Built with security in mind - supports secure gRPC connections, configurable databases, and controlled access to event data.
+	</Card>
+	<Card title="Open Source" icon="github">
+		Free to use and modify. Contributions welcome through GitHub. Easy setup with Docker Compose for quick deployment.
+	</Card>
+</CardGrid>
