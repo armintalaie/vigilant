@@ -2,6 +2,7 @@
 
 A self-hosted, lightweight, and simple event monitoring tool written in Go and gRPC with Kafka as the message broker.
 
+![Vigilant](./assets/sc1.png)
 
 ## Setup
 
