@@ -81,7 +81,6 @@ func (c *Consumer) Start() error {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Println("Reading messages:")
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			c.readMessages(ctx, partitionConsumer)
 			cancel()
@@ -137,4 +136,30 @@ func (c *Consumer) saveToDatabase(message string) error {
 
 func (c *Consumer) Close() error {
 	return c.db.Close()
+}
+
+func (c *Consumer) GetLogs() ([]*pb.Log, error) {
+	rows, err := c.db.Query(`SELECT id, message, timestamp, level, severity, source, "group", tags, type, origin, data FROM logs`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query logs: %v", err)
+	}
+	defer rows.Close()
+
+	var logs []*pb.Log
+	for rows.Next() {
+		var logMessage pb.Log
+		var dataJSON string
+		if err := rows.Scan(&logMessage.Id, &logMessage.Message, &logMessage.Timestamp, &logMessage.Level, &logMessage.Severity, &logMessage.Source, &logMessage.Group, &logMessage.Tags, &logMessage.Type, &logMessage.Origin, &dataJSON); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %v", err)
+		}
+
+		// Unmarshal the Data JSON string to a map
+		if err := json.Unmarshal([]byte(dataJSON), &logMessage.Data); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal data: %v", err)
+		}
+
+		logs = append(logs, &logMessage)
+	}
+
+	return logs, nil
 }

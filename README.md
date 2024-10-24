@@ -27,13 +27,26 @@ A self-hosted, lightweight, and simple event monitoring tool written in Go and g
     - You can run the Go server by running `go run main.go`.
     - The server will start on port `50051`.
 
+
 🎉 You're all set! 🎉
+
+
+### (Optional) Setting up a client
+
+1. Install the Wails CLI.
+    - You can install the wails CLI by running `go install github.com/wailsapp/wails/v2/cmd/wails@latest`.
+    - You can check if you have the wails CLI installed by running `wails --version`.
+    - If you encounter any issues, you can check the [Wails documentation](https://wails.io/docs/gettingstarted/installation).
+2. Run the Wails app.
+    - You can run the Wails app by running `wails dev` in the `cmd/desktop` directory.
 
 
 
 ## Running
 
 Repeat step 6 and 7 from the setup section to run the server.
+
+To run the client, repeat step 2 from the setup section.
 
 ### Deploying to production
 
@@ -44,7 +57,7 @@ To do
 
 ## How it works
 
-1. Events can be logged through gRPC. There is a `.proto` file that defines the service and the message that can be sent over gRPC. 
+1. Events can be logged through gRPC. There is a `.proto` file that defines the service and the message that can be sent over gRPC.
    - Check the [Logging](#logging) section for more information on how to log events.
 2. When events are sent over gRPC, they are sent to the server. The server takes the events and has Kafka produce them to a topic.
 3. There is a concurrent goroutine that consumes the events every n seconds. (default is 30 seconds)
@@ -52,8 +65,12 @@ To do
    - On each server start, the database is essentially wiped clean. See the [Configuration](#configuration) section for more information on how to use a different database.
 5. The events can be queried through gRPC. There is a `.proto` file that defines the service and the message that can be sent over gRPC.
   - Check the [Querying](#querying) section for more information on how to query events.
+6. The client is built with Wails which binds Go code to a frontend. `Sveltekit` is used for the frontend. The client can be used to log events and query events.
+   - Check the [Running](#running) section for more information on how to run the client.
+   - Allows you to use the service with a GUI; either through the desktop app or the web app.
 
 Should you want to modify the server to your needs, you can edit the `.proto` files and regenerate the Go code. Check the [Editing the proto file](#editing-the-proto-file) section for more information.
+
 
 ### Logging
 
@@ -115,7 +132,7 @@ If you want to edit the proto file, you will need to regenerate the Go code.
 You can do this by running the following command:
 
 ```bash
-protoc --go_out=. --go-grpc_out=. ./internal/logger/log.proto 
+protoc --go_out=. --go-grpc_out=. ./internal/logger/log.proto
 ```
 
 ### Changing the Kafka topic

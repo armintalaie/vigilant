@@ -28,7 +28,7 @@ func main() {
 		}
 	}()
 
-	consumer, err := internal.NewConsumer([]string{"localhost:9092"}, "logs", "logs.db")
+	consumer, err := internal.NewConsumer([]string{"localhost:9092"}, "logs", "cmd/desktop/logs.db")
 	if err != nil {
 		log.Fatalf("Failed to create consumer: %v", err)
 	}
